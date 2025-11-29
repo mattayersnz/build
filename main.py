@@ -6,7 +6,17 @@ from ssd1306 import SSD1306_I2C
 # I2C + OLED Setup
 # ----------------------------
 i2c = I2C(1, scl=Pin(3), sda=Pin(2), freq=400000)  # Feather RP2040 SCL=GPIO3, SDA=GPIO2
-oled = SSD1306_I2C(128, 64, i2c)
+
+# Initialize display with proper reset
+oled = SSD1306_I2C(128, 64, i2c, addr=0x3c)
+
+# Force display off, clear buffer, then turn back on
+oled.poweroff()
+time.sleep(0.1)
+oled.fill(0)
+oled.poweron()
+oled.show()
+time.sleep(0.2)
 
 # ----------------------------
 # Button Setup (active LOW)
@@ -14,6 +24,11 @@ oled = SSD1306_I2C(128, 64, i2c)
 btnA = Pin(5, Pin.IN, Pin.PULL_UP)  # Button A – Start
 btnB = Pin(6, Pin.IN, Pin.PULL_UP)  # Button B – Stop
 btnC = Pin(9, Pin.IN, Pin.PULL_UP)  # Button C – Reset
+
+# Button state tracking for debouncing
+btnA_last = True
+btnB_last = True
+btnC_last = True
 
 # ----------------------------
 # Timer State
@@ -56,31 +71,35 @@ def update_display():
 update_display()
 
 while True:
-    # --- Button A: Start ---
-    if not btnA.value():   # active LOW
+    # --- Button A: Start (detect button press on falling edge) ---
+    btnA_current = btnA.value()
+    if btnA_last and not btnA_current:   # button just pressed
         if not running:
             running = True
             start_time = time.ticks_ms() - elapsed
             update_display()
-        time.sleep_ms(200)  # debounce
+    btnA_last = btnA_current
 
     # --- Button B: Stop ---
-    if not btnB.value():
+    btnB_current = btnB.value()
+    if btnB_last and not btnB_current:   # button just pressed
         if running:
             running = False
             elapsed = time.ticks_ms() - start_time
             update_display()
-        time.sleep_ms(200)
+    btnB_last = btnB_current
 
     # --- Button C: Reset ---
-    if not btnC.value():
+    btnC_current = btnC.value()
+    if btnC_last and not btnC_current:   # button just pressed
         running = False
         elapsed = 0
         update_display()
-        time.sleep_ms(200)
+    btnC_last = btnC_current
 
     # --- If running, update elapsed ---
     if running:
         elapsed = time.ticks_ms() - start_time
         update_display()
-        time.sleep_ms(50)
+
+    time.sleep_ms(50)
