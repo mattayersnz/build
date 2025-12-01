@@ -4,64 +4,98 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a MicroPython lap timer application for the Adafruit RP2040 (Feather) with an SSD1306 OLED display. The project runs directly on the microcontroller hardware, not on a desktop OS.
+This is a MicroPython lap timer application for the Adafruit RP2040 (Feather) with an SH1107 OLED display. The project runs directly on the microcontroller hardware, not on a desktop OS.
 
 ## Hardware Configuration
 
-**Target Device**: Adafruit RP2040 Feather board with MicroPython firmware
+**Components**:
+- Adafruit Feather RP2040 with USB Type A Host
+- Adafruit FeatherWing OLED - 128x64 OLED Add-on for Feather (STEMMA QT / Qwiic)
+- Solderable protoboard (EPLZON breadboard-compatible)
+
+**Protoboard Wiring**:
+
+*RP2040 to OLED connections:*
+- 3V → 3V
+- GND → GND
+- SDA → SDA (GPIO 2 on RP2040)
+- SCL → SCL (GPIO 3 on RP2040)
+
+*Button connections to RP2040:*
+- GPIO 9 → Button A (Start/Stop toggle)
+- GPIO 5 → Button B (Reset)
 
 **Pin Assignments**:
 - I2C SCL: GPIO 3
 - I2C SDA: GPIO 2
-- I2C Address: 0x3c (SSD1306 OLED 128x64)
-- Button A (Start): GPIO 5
-- Button B (Stop): GPIO 6
-- Button C (Reset): GPIO 9
+- I2C Address: 0x3c (SH1107 OLED 128x64)
+- Button A (Start/Stop): GPIO 9
+- Button B (Reset): GPIO 5
 - All buttons are active LOW with internal pull-up resistors
+- Display rotation: 180° (upside-down corrected)
 
 ## Development Commands
 
+### Quick Deploy (Recommended)
+
+Use the deploy script to upload files and run the app on boot:
+
+```bash
+./deploy.sh
+```
+
+Or use the local alias when in the project directory (after running `source .envrc` or installing direnv):
+
+```bash
+build
+```
+
 ### Device Connection
-All commands use mpremote to communicate with the RP2040. The device path is typically `/dev/tty.usbmodem101` on macOS. If the device is not found:
+All commands use mpremote to communicate with the RP2040. The device path is typically `/dev/tty.usbmodem1101` on macOS. If the device is not found:
 
 ```bash
 ls /dev/tty.usb* /dev/cu.usb*
 ```
 
-### Upload Files to Device
+### Manual Upload Files to Device
 ```bash
-# Upload SSD1306 driver library
-mpremote connect /dev/tty.usbmodem101 fs cp ssd1306.py :
+# Upload SH1107 driver library
+mpremote connect /dev/tty.usbmodem1101 fs cp sh1107.py :
 
 # Upload main application
-mpremote connect /dev/tty.usbmodem101 fs cp main.py :
+mpremote connect /dev/tty.usbmodem1101 fs cp main.py :
 ```
 
 ### Run Application
 ```bash
+# Quick deploy (recommended) - auto-runs on boot
+./deploy.sh
+
 # Run once (stops when terminal closes)
-mpremote connect /dev/tty.usbmodem101 run main.py
+./run.sh
+# or manually:
+mpremote connect /dev/tty.usbmodem1101 run main.py
 
 # Copy as boot.py for auto-start on power-on
-mpremote connect /dev/tty.usbmodem101 fs cp main.py :boot.py
+mpremote connect /dev/tty.usbmodem1101 fs cp main.py :boot.py
 
 # Soft reset if main.py already on device
-mpremote connect /dev/tty.usbmodem101 soft-reset
+mpremote connect /dev/tty.usbmodem1101 soft-reset
 ```
 
 ### Testing
 ```bash
 # Test I2C device detection
-mpremote connect /dev/tty.usbmodem101 run test_i2c.py
+mpremote connect /dev/tty.usbmodem1101 run test_01_hardware.py
 
 # Test display output
-mpremote connect /dev/tty.usbmodem101 run test_display.py
+mpremote connect /dev/tty.usbmodem1101 run test_sh1107_display.py
 ```
 
 ### REPL Access
 ```bash
 # Enter interactive REPL
-mpremote connect /dev/tty.usbmodem101 repl
+mpremote connect /dev/tty.usbmodem1101 repl
 
 # Press Ctrl+] to exit REPL
 ```
@@ -71,14 +105,18 @@ mpremote connect /dev/tty.usbmodem101 repl
 **main.py**: Core application implementing the timer state machine
 - Manages timer state (running, start_time, elapsed)
 - Edge-detection button debouncing (tracks last button state)
-- Display updates using format_time() helper (MM:SS.hh format)
+- Display updates using format_time() helper (SS:t.h.m format - seconds:tenths.hundredths.thousandths)
+- 2-button control: Button A toggles start/stop, Button B resets
 - Main loop: polls buttons at 50ms intervals, updates display when running
+- Display rotation set to 180° for correct orientation
+- Auto-runs on boot for standalone operation
 
-**ssd1306.py**: SSD1306 OLED driver library (standard MicroPython driver)
-- SSD1306_I2C class for I2C communication
-- SSD1306_SPI class for SPI communication (not used in this project)
+**sh1107.py**: SH1107 OLED driver library (from peter-l5/SH1107)
+- SH1107_I2C class for I2C communication
+- SH1107_SPI class for SPI communication (not used in this project)
 - Subclasses framebuf.FrameBuffer for graphics primitives
 - Handles low-level display initialization and command sequences
+- Optimized for SH1107 controller (used in Adafruit FeatherWing OLED 128x64)
 
 **test_i2c.py**: Hardware diagnostic script
 - Scans multiple I2C bus configurations

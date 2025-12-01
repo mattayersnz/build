@@ -44,15 +44,15 @@ class SSD1306(framebuf.FrameBuffer):
             SET_MEM_ADDR,
             0x00,  # horizontal
             # resolution and layout
-            SET_DISP_START_LINE | 0x00,  # start at line 0
+            SET_DISP_START_LINE,  # start at line 0
             SET_SEG_REMAP | 0x01,  # column addr 127 mapped to SEG0
             SET_MUX_RATIO,
             self.height - 1,
-            SET_COM_OUT_DIR | 0x00,  # scan from COM0 to COM[N]
+            SET_COM_OUT_DIR | 0x08,  # scan from COM[N] to COM0
             SET_DISP_OFFSET,
             0x00,
             SET_COM_PIN_CFG,
-            0x12,  # Alternative COM pin config for 128x64 OLED
+            0x02 if self.width > 2 * self.height else 0x12,
             # timing and driving scheme
             SET_DISP_CLK_DIV,
             0x80,

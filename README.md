@@ -1,34 +1,8 @@
 # Lap Timer for Adafruit RP2040
 
-A MicroPython-based lap timer application for the Adafruit RP2040 with an SSD1306 OLED display.
+A MicroPython-based lap timer application for the Adafruit RP2040 with an SH1107 OLED display.
 
-## Hardware Requirements
-
-- Adafruit RP2040 (Feather or compatible board)
-- SSD1306 OLED Display (128x64, I2C)
-- 3 Push buttons
-- MicroPython firmware installed on the RP2040
-
-## Pin Configuration
-
-### I2C Connection (OLED Display)
-- **SCL**: GPIO 3
-- **SDA**: GPIO 2
-- **I2C Address**: 0x3c
-
-### Buttons (Active LOW with pull-up resistors)
-- **Button A** (Start): GPIO 5
-- **Button B** (Stop): GPIO 6
-- **Button C** (Reset): GPIO 9
-
-## Features
-
-- Start/Stop/Reset timer functionality
-- Display shows time in MM:SS.hh format
-- Real-time status indicator (RUNNING/STOPPED)
-- Edge-detection debouncing for reliable button input
-
-## Installation
+## Quick Start
 
 ### Prerequisites
 
@@ -38,62 +12,62 @@ Install mpremote for device communication:
 brew install mpremote
 ```
 
-### Upload Files to RP2040
+### Deploy to Device
 
 1. Connect your RP2040 via USB
 
-2. Upload the SSD1306 driver library:
+2. Run the deploy script:
 ```bash
-mpremote connect /dev/tty.usbmodem101 fs cp ssd1306.py :
+./deploy.sh
 ```
 
-3. Upload the main application:
+That's it! The lap timer will start automatically and continue running even after you disconnect the terminal.
+
+**Local Shortcut**: When in this project directory, you can also type:
 ```bash
-mpremote connect /dev/tty.usbmodem101 fs cp main.py :
+build
 ```
 
-## Running the Application
-
-### Option 1: Run Once (Temporary)
-
-Run the app directly - it will stop when you close the terminal or disconnect:
-
+To activate the shortcut:
 ```bash
-mpremote connect /dev/tty.usbmodem101 run main.py
+# Option 1: Using direnv (auto-loads when entering directory)
+brew install direnv
+direnv allow
+
+# Option 2: Manual (load each time)
+source .envrc
 ```
 
-### Option 2: Auto-Run on Boot (Recommended)
+## Hardware Requirements
 
-Make the app start automatically when the RP2040 powers on:
+- Adafruit Feather RP2040 with USB Type A Host
+- Adafruit FeatherWing OLED - 128x64 OLED Add-on for Feather (STEMMA QT / Qwiic)
+- Solderable protoboard for mounting components
+- MicroPython firmware installed on the RP2040
 
-```bash
-mpremote connect /dev/tty.usbmodem101 fs cp main.py :boot.py
-```
+## Wiring on Protoboard
 
-After this, simply disconnect and reconnect power - the lap timer will start automatically.
+### RP2040 to OLED Display
+- **3V** → **3V**
+- **GND** → **GND**
+- **SDA** → **SDA** (GPIO 2 on RP2040)
+- **SCL** → **SCL** (GPIO 3 on RP2040)
+- **I2C Address**: 0x3c
 
-### Option 3: Via REPL
+### Button Connections to RP2040
+- **GPIO 9** → **Button A** (Start/Stop)
+- **GPIO 5** → **Button B** (Reset)
+- All buttons are active LOW with internal pull-up resistors enabled
 
-Connect to the REPL and import the module:
+## Features
 
-```bash
-mpremote connect /dev/tty.usbmodem101 repl
-```
-
-Then in the REPL:
-```python
-import main
-```
-
-Press `Ctrl+]` to exit the REPL.
-
-### Option 4: Soft Reset
-
-If `main.py` is already on the device:
-
-```bash
-mpremote connect /dev/tty.usbmodem101 soft-reset
-```
+- Start/Stop and Reset timer functionality with 2 buttons
+- High-precision time display in SS:t.h.m format (seconds:tenths.hundredths.thousandths)
+- Real-time status indicator (RUNNING/STOPPED)
+- Pause/resume capability - preserves elapsed time
+- Edge-detection debouncing for reliable button input
+- 180° display rotation for correct orientation
+- Auto-run on boot - works standalone when powered
 
 ## Usage
 
@@ -101,25 +75,28 @@ Once running, the OLED display will show:
 
 ```
 LAP TIMER
-00:00.00
+00:0.0.0
 STOPPED
 ```
 
+The time format shows seconds:tenths.hundredths.thousandths (e.g., 12:5.6.7 = 12.567 seconds)
+
 ### Button Controls
 
-- **Button A**: Start the timer
-- **Button B**: Stop/Pause the timer
-- **Button C**: Reset the timer to 00:00.00
+- **Button A**: Start/Stop toggle (press to start, press again to pause, preserves time for resume)
+- **Button B**: Reset the timer to 00:0.0.0 (works anytime)
 
 ## Troubleshooting
 
-### Display shows pixel noise
+### Display shows pixel noise or wrong controller
 
-The app includes automatic display reset on startup. If you still see noise:
+This project uses the **SH1107 OLED controller** (not SSD1306). The Adafruit FeatherWing OLED 128x64 uses SH1107.
 
-1. Power cycle the RP2040
-2. Re-upload the files
-3. Check I2C connections
+If you see pixel noise:
+1. Ensure you're using sh1107.py driver (not ssd1306.py)
+2. Verify I2C address is 0x3c
+3. Power cycle the RP2040
+4. Check I2C connections
 
 ### Buttons not responding
 
@@ -135,13 +112,44 @@ Check your USB connection and find the correct device:
 ls /dev/tty.usb* /dev/cu.usb*
 ```
 
-Replace `/dev/tty.usbmodem101` in the commands with your actual device path.
+Replace `/dev/tty.usbmodem1101` in the commands with your actual device path.
+
+## Manual Deployment (Advanced)
+
+If you need more control, you can manually upload files:
+
+```bash
+# Upload SH1107 driver library
+mpremote connect /dev/tty.usbmodem1101 fs cp sh1107.py :
+
+# Upload main application
+mpremote connect /dev/tty.usbmodem1101 fs cp main.py :
+
+# Soft reset device (auto-runs main.py on boot)
+mpremote connect /dev/tty.usbmodem1101 soft-reset
+```
+
+### Other Run Options
+
+**Run once (temporary)** - stops when terminal closes:
+```bash
+./run.sh
+```
+
+**Via REPL**:
+```bash
+mpremote connect /dev/tty.usbmodem1101 repl
+```
 
 ## File Structure
 
-- `main.py` - Main application code
-- `ssd1306.py` - SSD1306 OLED driver library
-- `README.md` - This file
+- `main.py` - Main application code with lap timer logic
+- `sh1107.py` - SH1107 OLED driver library (from peter-l5/SH1107)
+- `deploy.sh` - Deployment script (uploads and runs on boot)
+- `run.sh` - Run script (temporary, stops on disconnect)
+- `.envrc` - Local environment aliases
+- `test_sh1107_display.py` - Display verification test
+- `test_01_hardware.py` - I2C and hardware detection test
 
 ## License
 
