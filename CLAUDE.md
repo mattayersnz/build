@@ -104,8 +104,8 @@ mpremote connect /dev/tty.usbmodem1101 repl
 - Manages timer state (running, start_time, elapsed)
 - Single-button control with long-press detection (1 second threshold)
 - Short press: Start/Stop toggle with pause/resume capability
-- Long press: Reset timer to 00.000
-- Display updates using format_time() helper (SS.thm format - seconds.tenths-hundredths-milliseconds)
+- Long press: Reset timer to 00:00.000
+- Display updates using format_time() helper (MM:SS.thm format - minutes:seconds.tenths-hundredths-milliseconds)
 - Main loop: polls button at 50ms intervals, updates display when running
 - Display rotation set to 180° for correct orientation
 - Auto-runs on boot for standalone operation

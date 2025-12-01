@@ -37,14 +37,16 @@ start_time = 0
 elapsed = 0
 
 # ----------------------------
-# Helper: Format time as SS.thm (seconds.tenths-hundredths-milliseconds)
+# Helper: Format time as MM:SS.thm (minutes:seconds.tenths-hundredths-milliseconds)
 # ----------------------------
 def format_time(ms):
     total_seconds = ms // 1000
+    minutes = total_seconds // 60
+    seconds = total_seconds % 60
     tenths = (ms % 1000) // 100
     hundredths = (ms % 100) // 10
     thousandths = ms % 10
-    return "{:02d}.{:01d}{:01d}{:01d}".format(total_seconds, tenths, hundredths, thousandths)
+    return "{:02d}:{:02d}.{:01d}{:01d}{:01d}".format(minutes, seconds, tenths, hundredths, thousandths)
 
 # ----------------------------
 # OLED Update Function

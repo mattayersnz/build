@@ -61,7 +61,7 @@ source .envrc
 ## Features
 
 - Single-button control with short-press and long-press detection
-- High-precision time display in SS.thm format (e.g., 12.567 seconds)
+- High-precision time display in MM:SS.thm format (e.g., 01:23.456 = 1 minute 23.456 seconds)
 - Real-time status indicator (RUNNING/STOPPED)
 - Pause/resume capability - preserves elapsed time
 - Long-press reset (hold 1 second to reset timer)
@@ -75,11 +75,11 @@ Once running, the OLED display will show:
 
 ```
 LAP TIMER
-00:0.0.0
+00:00.000
 STOPPED
 ```
 
-The time format shows seconds.tenths-hundredths-milliseconds (e.g., 12.567 = 12.567 seconds)
+The time format shows minutes:seconds.tenths-hundredths-milliseconds (e.g., 01:23.456 = 1 minute 23.456 seconds)
 
 ### Button Controls
 
@@ -88,7 +88,7 @@ The time format shows seconds.tenths-hundredths-milliseconds (e.g., 12.567 = 12.
   - Tap to start timer
   - Tap again to pause (preserves elapsed time)
   - Tap again to resume from where paused
-- **Long press (hold 1 second)**: Reset timer to 00.000
+- **Long press (hold 1 second)**: Reset timer to 00:00.000
   - Timer resets immediately when held for 1 second
 
 ## Troubleshooting
