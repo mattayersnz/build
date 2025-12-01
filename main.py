@@ -22,12 +22,12 @@ time.sleep(0.2)
 # ----------------------------
 # Button Setup (active LOW)
 # ----------------------------
-btnA = Pin(9, Pin.IN, Pin.PULL_UP)  # Button A – Start/Stop (GPIO 9)
-btnB = Pin(5, Pin.IN, Pin.PULL_UP)  # Button B – Reset (GPIO 5)
+btnA = Pin(9, Pin.IN, Pin.PULL_UP)  # Button A – Start/Stop/Reset (GPIO 9)
 
-# Button state tracking for debouncing
+# Button state tracking for long-press detection
 btnA_last = True
-btnB_last = True
+btnA_press_start = 0
+btnA_was_long_press = False
 
 # ----------------------------
 # Timer State
@@ -70,27 +70,40 @@ def update_display():
 update_display()
 
 while True:
-    # --- Button A: Start/Stop Toggle ---
+    # --- Button A: Single button with long-press detection ---
     btnA_current = btnA.value()
-    if btnA_last and not btnA_current:   # button just pressed
-        if running:
-            # Stop/Pause timer (preserve elapsed time)
-            running = False
-            elapsed = time.ticks_ms() - start_time
-        else:
-            # Start/Resume timer
-            running = True
-            start_time = time.ticks_ms() - elapsed
-        update_display()
-    btnA_last = btnA_current
 
-    # --- Button B: Reset ---
-    btnB_current = btnB.value()
-    if btnB_last and not btnB_current:   # button just pressed
-        running = False
-        elapsed = 0
-        update_display()
-    btnB_last = btnB_current
+    # Detect button press (falling edge)
+    if btnA_last and not btnA_current:
+        # Button just pressed - record time
+        btnA_press_start = time.ticks_ms()
+        btnA_was_long_press = False
+
+    # Check if button is being held down
+    if not btnA_current:  # Button is currently pressed
+        press_duration = time.ticks_diff(time.ticks_ms(), btnA_press_start)
+        if press_duration >= 1000 and not btnA_was_long_press:
+            # Long press detected (1 second) - RESET
+            btnA_was_long_press = True
+            running = False
+            elapsed = 0
+            update_display()
+
+    # Detect button release (rising edge)
+    if not btnA_last and btnA_current:
+        if not btnA_was_long_press:
+            # Short press - START/STOP TOGGLE
+            if running:
+                # Stop/Pause timer (preserve elapsed time)
+                running = False
+                elapsed = time.ticks_ms() - start_time
+            else:
+                # Start/Resume timer
+                running = True
+                start_time = time.ticks_ms() - elapsed
+            update_display()
+
+    btnA_last = btnA_current
 
     # --- If running, update elapsed ---
     if running:

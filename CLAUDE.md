@@ -22,16 +22,14 @@ This is a MicroPython lap timer application for the Adafruit RP2040 (Feather) wi
 - SCL → SCL (GPIO 3 on RP2040)
 
 *Button connections to RP2040:*
-- GPIO 9 → Button A (Start/Stop toggle)
-- GPIO 5 → Button B (Reset)
+- GPIO 9 → Button A (Start/Stop/Reset with long-press)
 
 **Pin Assignments**:
 - I2C SCL: GPIO 3
 - I2C SDA: GPIO 2
 - I2C Address: 0x3c (SH1107 OLED 128x64)
-- Button A (Start/Stop): GPIO 9
-- Button B (Reset): GPIO 5
-- All buttons are active LOW with internal pull-up resistors
+- Button A (Start/Stop/Reset): GPIO 9
+- Button is active LOW with internal pull-up resistor
 - Display rotation: 180° (upside-down corrected)
 
 ## Development Commands
@@ -104,10 +102,11 @@ mpremote connect /dev/tty.usbmodem1101 repl
 
 **main.py**: Core application implementing the timer state machine
 - Manages timer state (running, start_time, elapsed)
-- Edge-detection button debouncing (tracks last button state)
-- Display updates using format_time() helper (SS:t.h.m format - seconds:tenths.hundredths.thousandths)
-- 2-button control: Button A toggles start/stop, Button B resets
-- Main loop: polls buttons at 50ms intervals, updates display when running
+- Single-button control with long-press detection (1 second threshold)
+- Short press: Start/Stop toggle with pause/resume capability
+- Long press: Reset timer to 00.000
+- Display updates using format_time() helper (SS.thm format - seconds.tenths-hundredths-milliseconds)
+- Main loop: polls button at 50ms intervals, updates display when running
 - Display rotation set to 180° for correct orientation
 - Auto-runs on boot for standalone operation
 

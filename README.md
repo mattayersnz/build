@@ -55,16 +55,16 @@ source .envrc
 - **I2C Address**: 0x3c
 
 ### Button Connections to RP2040
-- **GPIO 9** → **Button A** (Start/Stop)
-- **GPIO 5** → **Button B** (Reset)
-- All buttons are active LOW with internal pull-up resistors enabled
+- **GPIO 9** → **Button A** (Start/Stop/Reset with long-press)
+- Button is active LOW with internal pull-up resistor enabled
 
 ## Features
 
-- Start/Stop and Reset timer functionality with 2 buttons
-- High-precision time display in SS:t.h.m format (seconds:tenths.hundredths.thousandths)
+- Single-button control with short-press and long-press detection
+- High-precision time display in SS.thm format (e.g., 12.567 seconds)
 - Real-time status indicator (RUNNING/STOPPED)
 - Pause/resume capability - preserves elapsed time
+- Long-press reset (hold 1 second to reset timer)
 - Edge-detection debouncing for reliable button input
 - 180° display rotation for correct orientation
 - Auto-run on boot - works standalone when powered
@@ -79,12 +79,17 @@ LAP TIMER
 STOPPED
 ```
 
-The time format shows seconds:tenths.hundredths.thousandths (e.g., 12:5.6.7 = 12.567 seconds)
+The time format shows seconds.tenths-hundredths-milliseconds (e.g., 12.567 = 12.567 seconds)
 
 ### Button Controls
 
-- **Button A**: Start/Stop toggle (press to start, press again to pause, preserves time for resume)
-- **Button B**: Reset the timer to 00:0.0.0 (works anytime)
+**Button A (GPIO 9) - Single Button Control:**
+- **Short press (tap)**: Start/Stop toggle
+  - Tap to start timer
+  - Tap again to pause (preserves elapsed time)
+  - Tap again to resume from where paused
+- **Long press (hold 1 second)**: Reset timer to 00.000
+  - Timer resets immediately when held for 1 second
 
 ## Troubleshooting
 
